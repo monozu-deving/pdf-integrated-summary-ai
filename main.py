@@ -1,5 +1,6 @@
 import os
-from PyPDF2 import PdfMerger, PdfReader
+import pdfplumber
+from PyPDF2 import PdfMerger
 
 def merge_pdfs(input_folder, output_folder, output_filename):
     os.makedirs(input_folder, exist_ok=True)
@@ -25,13 +26,13 @@ def merge_pdfs(input_folder, output_folder, output_filename):
     print(f"Merged PDF saved to: {merged_path}")
     return merged_path
 
-def extract_text_from_pdf(pdf_path):
-    reader = PdfReader(pdf_path)
+def extract_text_with_plumber(pdf_path):
     text = ""
-    for page in reader.pages:
-        page_text = page.extract_text()
-        if page_text:
-            text += page_text + "\n"
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n"
     return text
 
 if __name__ == "__main__":
@@ -43,9 +44,9 @@ if __name__ == "__main__":
     # Step 1: Merge PDFs
     merged_pdf_path = merge_pdfs(input_folder, output_folder, merged_pdf_name)
 
-    # Step 2: Extract text from merged PDF
+    # Step 2: Extract text using pdfplumber
     if merged_pdf_path and os.path.exists(merged_pdf_path):
-        extracted_text = extract_text_from_pdf(merged_pdf_path)
+        extracted_text = extract_text_with_plumber(merged_pdf_path)
 
         # Step 3: Save to TXT file
         txt_path = os.path.join(output_folder, text_output_name)
