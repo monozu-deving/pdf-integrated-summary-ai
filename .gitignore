@@ -5,6 +5,7 @@ npm-debug.log*
 
 #Dependency directories
 node_modules/
+__pycache__/
 
 #result upload folder resource
 upload/
