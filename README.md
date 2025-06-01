@@ -1,106 +1,95 @@
-# 📄 PDF 병합 프로그램 - `main.py`
+# 📘 PDF 자동 요약 정리 시스템 (GPT + Pandoc 기반)
 
-이 프로그램은 `upload/` 폴더에 업로드된 여러 개의 PDF 파일을 **이름 순으로 정렬하여 병합**하고, 결과물을 `result/` 폴더에 `merged.pdf`라는 이름으로 저장합니다.
+이 프로젝트는 PDF 파일들을 병합하고, 텍스트를 추출한 후 GPT-4를 활용해 개념 설명과 수식 풀이가 포함된 학습 문서로 요약 정리한 뒤, HTML 형식으로 출력하는 자동화 파이프라인입니다.
+
+---
+
+## ✅ 주요 기능
+
+- `upload/` 폴더 내 PDF 파일 병합
+- PDF 내 텍스트 및 수식 추출
+- 수식은 자동으로 `$...$` 형태로 감싸 LaTeX 처리
+- GPT-4로 문서 요약 및 개념 설명 자동화
+- 결과를 마크다운(`.md`) 및 HTML로 출력
+- API 키는 `.env` 파일로 안전하게 관리
 
 ---
 
 ## 📁 폴더 구조
 
-```
+````
+
 project/
-├── main.py              # 병합 기능을 수행하는 메인 파이썬 파일
-├── upload/              # 병합할 PDF 파일들을 넣는 폴더
-│   ├── a.pdf
-│   ├── b.pdf
-│   └── ...
-└── result/              # 병합된 PDF가 저장될 폴더
-    └── merged.pdf
-```
+├── main.py             # 전체 실행 스크립트
+├── config.py           # GPT 클라이언트 생성 (API 키 숨김)
+├── .env                # OpenAI API 키 저장 (깃허브에 올리지 않음)
+├── .gitignore          # .env 제외 설정
+├── upload/             # 원본 PDF 파일 저장 폴더
+└── result/             # 병합 및 출력 결과 저장 폴더
+├── merged.pdf
+├── extracted\_text.txt
+├── summary.md
+└── summary.html
+
+````
 
 ---
 
-## ⚙️ 사용 방법  
+## ⚙️ 설치 방법
 
-1. `upload/` 폴더에 병합하고 싶은 `.pdf` 파일들을 넣습니다.  
-2. 터미널 또는 명령 프롬프트에서 `main.py`를 실행합니다:  
+### 1. 필수 라이브러리 설치
 
-   ```
-   python main.py
-   ```
-3. 병합된 결과는 `result/merged.pdf`로 저장됩니다.  
+```bash
+pip install openai python-dotenv pdfplumber PyPDF2
+````
 
----
+### 2. Pandoc 설치 (HTML 변환용)
 
-## 🧠 주요 기능 설명  
-
-* **PDF 정렬**: 파일 이름 기준으로 오름차순 정렬  
-* **자동 폴더 생성**: `upload/`, `result/` 폴더가 없다면 자동 생성  
-* **에러 처리**: PDF가 없을 경우 안내 메시지 출력  
+* [https://pandoc.org/install.html](https://pandoc.org/install.html)
+* Windows: `choco install pandoc` (관리자 CMD)
+* 설치 확인: `pandoc --version`
 
 ---
 
-## 🧪 사용 예시
+## 🔐 API 키 설정
 
-### 예시 입력
-
-`upload/` 폴더에 다음과 같은 PDF가 있을 경우:  
+`.env` 파일을 프로젝트 루트에 생성하고 다음과 같이 작성:
 
 ```
-01_intro.pdf
-02_content.pdf
-03_summary.pdf
+OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-### 실행 결과
-
-`result/merged.pdf`는 위 파일 순서대로 병합된 하나의 PDF 파일입니다.  
+> ⚠️ `.env`는 반드시 `.gitignore`에 등록되어 있어야 합니다.
 
 ---
 
-## 🐍 사용된 주요 라이브러리
-
-* [`PyPDF2`](https://pypi.org/project/PyPDF2/)  
-  PDF 병합에 사용되는 파이썬 라이브러리  
-
-설치 명령어:  
+## ▶️ 실행 방법
 
 ```
-pip install PyPDF2
-pip install pdfplumber
+python main.py
 ```
+
+실행 후 다음 파일들이 생성됩니다:
+
+* `result/merged.pdf` : 병합된 PDF
+* `result/extracted_text.txt` : 원문 텍스트 (수식 포함)
+* `result/summary.md` : GPT 요약 문서
+* `result/summary.html` : 최종 학습 문서 (브라우저에서 열기 가능)
 
 ---
 
-## 🛠 코드 주요 부분 요약
+## 💡 요약 문서 특징
 
-```
-pdf_files = sorted([
-    f for f in os.listdir(input_folder)
-    if f.lower().endswith('.pdf')
-])
-```
-
-* `upload/` 폴더에서 PDF 파일을 읽고 이름순으로 정렬  
-
-```
-merger = PdfMerger()
-for pdf in pdf_files:
-    merger.append(os.path.join(input_folder, pdf))
-```
-
-* 정렬된 순서로 PDF 병합  
-
-```
-merger.write(output_path)
-merger.close()
-```
-
-* 결과물을 `result/merged.pdf`로 저장하고 종료  
+* **모든 설명은 한국어**
+* 수식은 `$...$`로 표기되어 HTML 내에서 수식처럼 렌더링 가능
+* 각 개념에 대해 쉬운 한국어 설명이 자동 추가됨
+* 문서 끝에 "질문 유도 문장" 없이 자연스럽게 마무리됨
 
 ---
 
-## 📌 주의사항  
+## 🧠 향후 확장 아이디어
 
-* 프로그램 실행 위치는 반드시 `main.py`가 위치한 폴더여야 합니다.  
-* PDF 확장자는 `.PDF`, `.Pdf` 등 대소문자 구분 없이 인식됩니다.  
-* 파일명이 한글일 경우 운영체제 인코딩 문제로 병합 실패할 수 있으니 주의하세요.  
+* MathJax 템플릿 자동 포함 (HTML에서 수식 실제 렌더링)
+* PDF 최종 출력 (LaTeX 엔진 있는 경우)
+* 퀴즈/예제 자동 생성 기능 추가
+* GUI 실행 도구 (`Tkinter`, `PyQt`)
